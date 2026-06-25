@@ -1,0 +1,15 @@
+name: live-monitor-exporter
+version: 0.1.0
+description: "Non-blocking JSONL event exporter for the standalone Hermes Lens viewer."
+author: "hermes-lens"
+hooks:
+  - on_session_start
+  - on_session_end
+  - on_session_finalize
+  - on_session_reset
+  - pre_llm_call
+  - post_llm_call
+  - pre_api_request
+  - post_api_request
+  - pre_tool_call
+  - post_tool_call

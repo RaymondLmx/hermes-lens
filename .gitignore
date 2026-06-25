@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.tsbuildinfo
+.pytest_cache/
+.venv/
+node_modules/
+dist/
+.vite/
+frontend/vite.config.js
+frontend/vite.config.d.ts
+.coverage
+htmlcov/
+
+# Local planning/context files. Keep them in the workspace, but do not publish.
+AGENTS.md
+doc/spec.md
+doc/task.md
