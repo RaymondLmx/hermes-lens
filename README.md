@@ -8,7 +8,7 @@ participate in the response path.
 
 [中文说明](README.zh-CN.md)
 
-![Hermes Lens demo](assets/demo.gif)
+![Hermes Lens screenshot](assets/screenshot.png)
 
 ## Features
 

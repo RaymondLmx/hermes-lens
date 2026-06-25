@@ -7,7 +7,7 @@ prompt，不调用工具，不控制 agent，也不进入最终响应链路。
 
 [English README](README.md)
 
-![Hermes Lens demo](assets/demo.gif)
+![Hermes Lens screenshot](assets/screenshot.png)
 
 ## 功能
 
