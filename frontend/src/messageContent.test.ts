@@ -55,6 +55,40 @@ describe("messageContent", () => {
     expect(content.media[0].src).toContain("/api/media?path=");
   });
 
+  it("finds nested planner media references in tool output", () => {
+    const content = messageContent(
+      userEvent({
+        result: {
+          observations: [
+            {
+              screenshot_path: "/home/test/.hermes/live-media/frame-002.png",
+              caption: "Planner screenshot",
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(content.media).toEqual([
+      {
+        alt: "Planner screenshot",
+        src: "/api/media?path=%2Fhome%2Ftest%2F.hermes%2Flive-media%2Fframe-002.png",
+      },
+    ]);
+  });
+
+  it("supports file urls for allowlisted local media", () => {
+    const content = messageContent(
+      userEvent({
+        image_url: "file:///home/test/.hermes/live-media/frame-003.jpg",
+      }),
+    );
+
+    expect(content.media[0].src).toBe(
+      "/api/media?path=%2Fhome%2Ftest%2F.hermes%2Flive-media%2Fframe-003.jpg",
+    );
+  });
+
   it("marks truncated or remote untrusted image sources as unavailable", () => {
     const content = messageContent(
       userEvent({

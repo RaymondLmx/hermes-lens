@@ -72,6 +72,125 @@ function displayTitle(event: MonitorEvent, debugDetails: boolean): string {
   return event.type;
 }
 
+function MediaGallery({ media }: { media: MessageMedia[] }) {
+  const [failedMedia, setFailedMedia] = useState<Set<string>>(new Set());
+  const [selectedMedia, setSelectedMedia] = useState<MessageMedia | null>(null);
+  const [mediaDimensions, setMediaDimensions] = useState<
+    Record<string, { width: number; height: number }>
+  >({});
+
+  useEffect(() => {
+    if (!selectedMedia) return;
+    const close = (keyboardEvent: KeyboardEvent) => {
+      if (keyboardEvent.key === "Escape") setSelectedMedia(null);
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [selectedMedia]);
+
+  if (media.length === 0) return null;
+
+  return (
+    <>
+      <div className="media-gallery">
+        {media.map((item) =>
+          item.unavailableReason || !item.src || failedMedia.has(item.src) ? (
+            <div
+              className="media-unavailable"
+              key={`${item.alt}:${item.src ?? item.unavailableReason}`}
+            >
+              <Camera size={17} />
+              <span>
+                {item.unavailableReason || "Unavailable · blocked or missing"}
+              </span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="media-thumbnail"
+              key={item.src}
+              onClick={(clickEvent) => {
+                clickEvent.stopPropagation();
+                setSelectedMedia(item);
+              }}
+            >
+              <img
+                src={item.src}
+                alt={item.alt}
+                loading="lazy"
+                onLoad={(loadEvent) => {
+                  const image = loadEvent.currentTarget;
+                  setMediaDimensions((current) => ({
+                    ...current,
+                    [item.src as string]: {
+                      width: image.naturalWidth,
+                      height: image.naturalHeight,
+                    },
+                  }));
+                }}
+                onError={() =>
+                  setFailedMedia((current) =>
+                    new Set(current).add(item.src as string),
+                  )
+                }
+              />
+              <span>
+                <ZoomIn size={13} />
+                {item.mime || "image"}
+                {(item.width && item.height
+                  ? `${item.width}x${item.height}`
+                  : mediaDimensions[item.src]
+                    ? `${mediaDimensions[item.src].width}x${mediaDimensions[item.src].height}`
+                    : "")}
+              </span>
+            </button>
+          ),
+        )}
+      </div>
+      {selectedMedia?.src && (
+        <div
+          className="media-lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image preview"
+          onClick={() => setSelectedMedia(null)}
+        >
+          <button
+            type="button"
+            className="media-lightbox-close"
+            aria-label="Close image preview"
+            onClick={() => setSelectedMedia(null)}
+          >
+            <X size={20} />
+          </button>
+          <figure onClick={(clickEvent) => clickEvent.stopPropagation()}>
+            <img src={selectedMedia.src} alt={selectedMedia.alt} />
+            <figcaption>
+              <span>{selectedMedia.alt}</span>
+              <code>
+                {selectedMedia.mime || "image"}
+                {selectedMedia.src && mediaDimensions[selectedMedia.src]
+                  ? ` · ${mediaDimensions[selectedMedia.src].width}x${mediaDimensions[selectedMedia.src].height}`
+                  : ""}
+              </code>
+            </figcaption>
+          </figure>
+        </div>
+      )}
+    </>
+  );
+}
+
+function uniqueMedia(media: MessageMedia[]): MessageMedia[] {
+  const seen = new Set<string>();
+  return media.filter((item) => {
+    const key = item.src ?? `${item.alt}:${item.unavailableReason ?? ""}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export function EventBlock({
   event,
   onInspect,
@@ -81,11 +200,6 @@ export function EventBlock({
   embedded = false,
 }: BlockProps) {
   const [expanded, setExpanded] = useState(isDefaultExpanded(event));
-  const [failedMedia, setFailedMedia] = useState<Set<string>>(new Set());
-  const [selectedMedia, setSelectedMedia] = useState<MessageMedia | null>(null);
-  const [mediaDimensions, setMediaDimensions] = useState<
-    Record<string, { width: number; height: number }>
-  >({});
   const Icon = iconFor(event);
   const text = eventText(event);
   const content = messageContent(event);
@@ -100,15 +214,6 @@ export function EventBlock({
       setExpanded(expansionCommand.expanded);
     }
   }, [expansionCommand]);
-
-  useEffect(() => {
-    if (!selectedMedia) return;
-    const close = (keyboardEvent: KeyboardEvent) => {
-      if (keyboardEvent.key === "Escape") setSelectedMedia(null);
-    };
-    window.addEventListener("keydown", close);
-    return () => window.removeEventListener("keydown", close);
-  }, [selectedMedia]);
 
   return (
     <article
@@ -142,96 +247,10 @@ export function EventBlock({
       {expanded && (
         <div className="event-body" onClick={() => onInspect(event)}>
           {text && <p>{text}</p>}
-          {content.media.length > 0 && (
-            <div className="media-gallery">
-              {content.media.map((item) =>
-                item.unavailableReason || !item.src || failedMedia.has(item.src) ? (
-                  <div
-                    className="media-unavailable"
-                    key={`${item.alt}:${item.src ?? item.unavailableReason}`}
-                  >
-                    <Camera size={17} />
-                    <span>
-                      {item.unavailableReason || "Unavailable · blocked or missing"}
-                    </span>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    className="media-thumbnail"
-                    key={item.src}
-                    onClick={(clickEvent) => {
-                      clickEvent.stopPropagation();
-                      setSelectedMedia(item);
-                    }}
-                  >
-                    <img
-                      src={item.src}
-                      alt={item.alt}
-                      loading="lazy"
-                      onLoad={(loadEvent) => {
-                        const image = loadEvent.currentTarget;
-                        setMediaDimensions((current) => ({
-                          ...current,
-                          [item.src as string]: {
-                            width: image.naturalWidth,
-                            height: image.naturalHeight,
-                          },
-                        }));
-                      }}
-                      onError={() =>
-                        setFailedMedia((current) =>
-                          new Set(current).add(item.src as string),
-                        )
-                      }
-                    />
-                    <span>
-                      <ZoomIn size={13} />
-                      {item.mime || "image"}
-                      {(item.width && item.height
-                        ? `${item.width}x${item.height}`
-                        : mediaDimensions[item.src]
-                          ? `${mediaDimensions[item.src].width}x${mediaDimensions[item.src].height}`
-                          : "")}
-                    </span>
-                  </button>
-                ),
-              )}
-            </div>
-          )}
+          <MediaGallery media={content.media} />
           {!text && content.media.length === 0 && (
             <pre>{JSON.stringify(event.payload, null, 2)}</pre>
           )}
-        </div>
-      )}
-      {selectedMedia?.src && (
-        <div
-          className="media-lightbox"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Image preview"
-          onClick={() => setSelectedMedia(null)}
-        >
-          <button
-            type="button"
-            className="media-lightbox-close"
-            aria-label="Close image preview"
-            onClick={() => setSelectedMedia(null)}
-          >
-            <X size={20} />
-          </button>
-          <figure onClick={(clickEvent) => clickEvent.stopPropagation()}>
-            <img src={selectedMedia.src} alt={selectedMedia.alt} />
-            <figcaption>
-              <span>{selectedMedia.alt}</span>
-              <code>
-                {selectedMedia.mime || "image"}
-                {selectedMedia.src && mediaDimensions[selectedMedia.src]
-                  ? ` · ${mediaDimensions[selectedMedia.src].width}x${mediaDimensions[selectedMedia.src].height}`
-                  : ""}
-              </code>
-            </figcaption>
-          </figure>
         </div>
       )}
     </article>
@@ -262,6 +281,7 @@ export function ToolBlock({
   const done = events.some((event) => event.type === "tool.done");
   const state = failed ? "error" : done ? "done" : "running";
   const view = buildToolView(events);
+  const media = uniqueMedia(events.flatMap((event) => messageContent(event).media));
 
   useEffect(() => {
     if (expansionCommand) {
@@ -281,25 +301,27 @@ export function ToolBlock({
         <span className="event-icon">
           <Wrench size={16} aria-hidden="true" />
         </span>
-        <strong>{view.title || name}</strong>
-        {!expanded && view.subtitle && !failed && (
-          <span className="tool-inline-summary">
-            {view.subtitle}
-          </span>
-        )}
-        {view.durationLabel && (
-          <span className="tool-inline-duration">{view.durationLabel}</span>
-        )}
-        {debugDetails && <code>{first.group_id}</code>}
-        <span className={`tool-state state-${state}`}>
-          {state === "done" ? (
-            <CheckCircle2 size={13} />
-          ) : state === "error" ? (
-            <AlertCircle size={13} />
-          ) : (
-            <Radio size={13} />
+        <span className="tool-title-stack">
+          <strong>{view.title || name}</strong>
+          {!expanded && view.subtitle && !failed && (
+            <span className="tool-inline-summary">{view.subtitle}</span>
           )}
-          {state}
+        </span>
+        <span className="tool-header-meta">
+          {view.durationLabel && (
+            <span className="tool-inline-duration">{view.durationLabel}</span>
+          )}
+          {debugDetails && <code>{first.group_id}</code>}
+          <span className={`tool-state state-${state}`}>
+            {state === "done" ? (
+              <CheckCircle2 size={13} />
+            ) : state === "error" ? (
+              <AlertCircle size={13} />
+            ) : (
+              <Radio size={13} />
+            )}
+            {state}
+          </span>
         </span>
         {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
       </button>
@@ -333,6 +355,7 @@ export function ToolBlock({
               <pre>{view.detail}</pre>
             </section>
           )}
+          <MediaGallery media={media} />
           <div className="tool-events">
           {events.map((event) => {
             const summary = eventText(event);
