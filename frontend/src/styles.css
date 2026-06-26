@@ -1206,15 +1206,12 @@ time,
 .tool-header {
   min-height: 46px;
   overflow: hidden;
-  align-items: flex-start;
 }
 
 .tool-title-stack {
   display: grid;
   flex: 1 1 auto;
   min-width: 0;
-  gap: 3px;
-  padding-top: 1px;
 }
 
 .tool-header strong {
@@ -1223,20 +1220,6 @@ time,
   color: var(--hm-text-strong);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.tool-inline-summary {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--hm-text-muted);
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  font-size: 10px;
-  line-height: 1.45;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow-wrap: anywhere;
-  white-space: normal;
 }
 
 .tool-header-meta {

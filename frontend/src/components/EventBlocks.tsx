@@ -303,9 +303,6 @@ export function ToolBlock({
         </span>
         <span className="tool-title-stack">
           <strong>{view.title || name}</strong>
-          {!expanded && view.subtitle && !failed && (
-            <span className="tool-inline-summary">{view.subtitle}</span>
-          )}
         </span>
         <span className="tool-header-meta">
           {view.durationLabel && (
