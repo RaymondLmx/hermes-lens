@@ -9,18 +9,29 @@ import {
   CircleDot,
   Clock3,
   Code2,
+  Database,
+  FileText,
+  Globe,
+  HardDrive,
   MessageSquare,
+  Plug,
   Radio,
+  Send,
+  SquareTerminal,
   User,
+  WandSparkles,
   Wrench,
   X,
   ZoomIn,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { messageContent } from "../messageContent";
 import type { MessageMedia } from "../messageContent";
 import { eventText, formatTurnDuration, isDefaultExpanded } from "../timeline";
+import { toolCapabilityForName } from "../toolCapabilities";
+import type { ToolCapabilityKind } from "../toolCapabilities";
 import { buildToolView } from "../toolView";
 import type { MonitorEvent } from "../types";
 
@@ -71,6 +82,19 @@ function displayTitle(event: MonitorEvent, debugDetails: boolean): string {
   if (event.type.startsWith("robot.")) return "Robot";
   return event.type;
 }
+
+const TOOL_CAPABILITY_ICONS: Record<ToolCapabilityKind, LucideIcon> = {
+  browser: Globe,
+  communication: Send,
+  data: Database,
+  files: FileText,
+  generic: Wrench,
+  mcp: Plug,
+  memory: HardDrive,
+  perception: Camera,
+  skill: WandSparkles,
+  terminal: SquareTerminal,
+};
 
 function MediaGallery({ media }: { media: MessageMedia[] }) {
   const [failedMedia, setFailedMedia] = useState<Set<string>>(new Set());
@@ -281,6 +305,8 @@ export function ToolBlock({
   const done = events.some((event) => event.type === "tool.done");
   const state = failed ? "error" : done ? "done" : "running";
   const view = buildToolView(events);
+  const capability = toolCapabilityForName(view.toolName || name);
+  const ToolIcon = TOOL_CAPABILITY_ICONS[capability.kind];
   const media = uniqueMedia(events.flatMap((event) => messageContent(event).media));
 
   useEffect(() => {
@@ -298,8 +324,12 @@ export function ToolBlock({
         type="button"
         onClick={() => setExpanded(!expanded)}
       >
-        <span className="event-icon">
-          <Wrench size={16} aria-hidden="true" />
+        <span
+          className={`event-icon tool-capability-icon capability-${capability.kind}`}
+          title={capability.label}
+          aria-label={`${capability.label} tool`}
+        >
+          <ToolIcon size={16} aria-hidden="true" />
         </span>
         <span className="tool-title-stack">
           <strong>{view.title || name}</strong>

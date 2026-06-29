@@ -951,6 +951,60 @@ time,
   border-radius: var(--hm-radius-sm);
 }
 
+.tool-capability-icon {
+  color: var(--capability-accent, var(--hm-tool));
+  background: color-mix(
+    in srgb,
+    var(--capability-accent, var(--hm-tool)) 12%,
+    transparent
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--capability-accent, var(--hm-tool)) 36%,
+    var(--hm-border)
+  );
+}
+
+.capability-browser {
+  --capability-accent: var(--hm-info);
+}
+
+.capability-communication {
+  --capability-accent: var(--hm-user);
+}
+
+.capability-data {
+  --capability-accent: var(--hm-assistant);
+}
+
+.capability-files {
+  --capability-accent: var(--hm-text-muted);
+}
+
+.capability-generic {
+  --capability-accent: var(--hm-tool);
+}
+
+.capability-mcp {
+  --capability-accent: var(--hm-accent);
+}
+
+.capability-memory {
+  --capability-accent: var(--hm-success);
+}
+
+.capability-perception {
+  --capability-accent: var(--hm-info);
+}
+
+.capability-skill {
+  --capability-accent: var(--hm-warning);
+}
+
+.capability-terminal {
+  --capability-accent: var(--hm-error);
+}
+
 .event-title {
   color: var(--hm-accent);
   font-family: Georgia, "Times New Roman", serif;
